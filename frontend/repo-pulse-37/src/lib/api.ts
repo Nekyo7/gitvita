@@ -52,6 +52,15 @@ export interface HotspotStat {
   risk_score: number;
 }
 
+export interface DangerousCommit {
+  hash: string;
+  author: string;
+  date: string;
+  health_drop: number;
+  affected_files: string[];
+  ai_explanation: string;
+}
+
 export interface AnalyzeResponse {
   repo_name: string;
   total_commits: number;
@@ -66,6 +75,7 @@ export interface AnalyzeResponse {
   risks: RiskItem[];
   languages?: LanguageStat[];
   hotspots?: HotspotStat[];
+  dangerous_commit?: DangerousCommit;
 }
 
 const API_BASE =

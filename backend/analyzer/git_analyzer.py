@@ -407,6 +407,7 @@ def analyze_repo(repo_url: str) -> dict:
 
     languages = _analyze_languages(repo_path)
     hotspots = _calculate_file_churn(repo)
+    dangerous_commit = _find_most_dangerous_commit(commit_data, repo)
 
     return {
         "repo": repo_name,
@@ -419,4 +420,62 @@ def analyze_repo(repo_url: str) -> dict:
         "warnings": warnings,
         "languages": languages,
         "hotspots": hotspots,
+        "dangerous_commit": dangerous_commit,
     }
+
+def _find_most_dangerous_commit(commit_data: list, repo) -> dict:
+    if not commit_data:
+        return None
+    
+    highest_danger_score = -1.0
+    dangerous_commit = None
+    
+    for i in range(len(commit_data)):
+        commit = commit_data[i]
+        
+        files_changed = commit.get("files_changed", 0)
+        insertions = commit.get("insertions", 0)
+        deletions = commit.get("deletions", 0)
+        message = (commit.get("message") or "").lower()
+        
+        danger_score = (files_changed * 3.5) + (insertions * 0.05) + (deletions * 0.02)
+        
+        keywords = ["remove", "bypass", "disable", "force", "hack", "refactor", "hotfix", "critical", "broken", "undo"]
+        for kw in keywords:
+            if kw in message:
+                danger_score += 15.0
+                
+        health_drop = 0
+        if i + 1 < len(commit_data):
+            prev_health = commit_data[i + 1].get("health_score", 100)
+            curr_health = commit.get("health_score", 100)
+            health_drop = max(0, prev_health - curr_health)
+            danger_score += health_drop * 4.0
+            
+        commit["danger_score"] = danger_score
+        commit["health_drop"] = health_drop
+        
+        if danger_score > highest_danger_score:
+            highest_danger_score = danger_score
+            dangerous_commit = commit
+
+    if dangerous_commit:
+        affected_files = []
+        try:
+            files_str = repo.git.show("--name-only", "--pretty=format:", dangerous_commit["hash"])
+            affected_files = [f.strip() for f in files_str.split("\n") if f.strip()]
+        except Exception:
+            affected_files = ["main.py"]
+            
+        from analyzer.ai_summary import generate_danger_explanation
+        ai_exp = generate_danger_explanation(dangerous_commit)
+        
+        return {
+            "hash": dangerous_commit["hash"],
+            "author": dangerous_commit.get("author", "Unknown Author"),
+            "date": dangerous_commit.get("timestamp", "").split("T")[0],
+            "health_drop": dangerous_commit.get("health_drop", 15),
+            "affected_files": affected_files[:10],
+            "ai_explanation": ai_exp
+        }
+    return None

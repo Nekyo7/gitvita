@@ -144,4 +144,5 @@ def map_to_frontend(raw: dict) -> dict:
         "warnings": raw.get("warnings", []),
         "languages": raw.get("languages", []),
         "hotspots": raw.get("hotspots", []),
+        "dangerous_commit": raw.get("dangerous_commit"),
     }

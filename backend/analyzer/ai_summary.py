@@ -57,3 +57,26 @@ Give a concise engineering explanation in 2-4 sentences."""
     except Exception as exc:
         logger.warning("Central LLM call failed for summary: %s. Falling back to deterministic summary.", exc)
         return generate_deterministic_summary(commit)
+
+def generate_danger_explanation(commit: dict) -> str:
+    prompt = f"""Explain why this commit is labeled the "MOST DANGEROUS COMMIT" in the codebase.
+    
+    Commit Message: {commit.get('message', 'No message')}
+    Files Changed Count: {commit.get('files_changed', 0)}
+    Insertions: {commit.get('insertions', 0)}
+    Deletions: {commit.get('deletions', 0)}
+    Health Drop Score: {commit.get('health_drop', 0)}
+    
+    Provide a highly technical, sharp, and concise 1-2 sentence engineering explanation of the potential risk (e.g. bypass validation, architectural regression, cross-module coupling). Keep it punchy and realistic."""
+
+    messages = [
+        {"role": "user", "content": prompt}
+    ]
+
+    try:
+        reply, model_used = call_llm(messages)
+        logger.info("Generated dangerous commit explanation using %s.", model_used)
+        return reply.strip()
+    except Exception as exc:
+        logger.warning("Central LLM call failed for danger explanation: %s. Falling back to deterministic explanation.", exc)
+        return f"This commit represents a critical architectural risk due to high churn ({commit.get('insertions', 0)} insertions / {commit.get('deletions', 0)} deletions) across {commit.get('files_changed', 0)} files, potentially violating modular decoupling constraints."

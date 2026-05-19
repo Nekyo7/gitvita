@@ -313,6 +313,59 @@ function Dashboard() {
                   </div>
                   <AIInsight insight={data.ai_insight} />
                 </div>
+
+                {/* Most Dangerous Commit Alert Card */}
+                {data.dangerous_commit && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="rounded-2xl border border-red-500/30 bg-red-500/5 hover:bg-red-500/10 transition-all duration-300 p-6 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-[0_0_20px_rgba(239,68,68,0.07)]"
+                  >
+                    {/* Alert Pulsing Background Mesh */}
+                    <div className="absolute -top-32 -right-32 h-64 w-64 rounded-full bg-red-500 opacity-10 blur-3xl animate-pulse pointer-events-none" />
+                    
+                    <div className="flex-1 space-y-3.5 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-2 w-2 rounded-full bg-red-500 animate-ping shrink-0" />
+                        <span className="text-[10px] font-extrabold uppercase tracking-widest text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
+                          ⚠️ MOST DANGEROUS COMMIT FLAGGED
+                        </span>
+                      </div>
+
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-extrabold text-foreground truncate flex items-center gap-2">
+                          Commit: <span className="font-mono text-xs text-primary font-bold bg-secondary/80 px-1.5 py-0.5 rounded select-all">{data.dangerous_commit.hash.substring(0, 8)}</span>
+                          <span className="text-muted-foreground font-normal text-xs">by {data.dangerous_commit.author} on {data.dangerous_commit.date}</span>
+                        </h4>
+                        <p className="text-xs font-semibold text-red-200/90 leading-relaxed max-w-[800px]">
+                          "{data.dangerous_commit.ai_explanation}"
+                        </p>
+                      </div>
+
+                      {/* Affected Files List */}
+                      <div className="space-y-1.5">
+                        <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider block">Affected Codebases ({data.dangerous_commit.affected_files.length})</span>
+                        <div className="flex flex-wrap gap-1.5 max-h-[80px] overflow-y-auto pr-1 scrollbar-thin">
+                          {data.dangerous_commit.affected_files.map((file) => (
+                            <span key={file} className="text-[9px] font-mono font-medium px-2 py-0.5 rounded bg-secondary/35 text-foreground/80 border border-border/10">
+                              {file.split('/').pop()}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Big Drop Indicator */}
+                    <div className="shrink-0 text-center bg-red-500/10 border border-red-500/25 rounded-2xl px-5 py-4 w-full md:w-36 shadow-glow flex flex-row md:flex-col items-center justify-between md:justify-center gap-3">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-red-400 block md:mb-1">Score Drop</span>
+                      <div className="flex items-baseline justify-center gap-0.5">
+                        <span className="text-3xl font-extrabold text-red-400">-{data.dangerous_commit.health_drop}</span>
+                        <span className="text-[10px] font-bold text-red-400/80">pts</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
               </motion.div>
             )}
 
