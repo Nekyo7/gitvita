@@ -4,6 +4,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BACKEND_DIR / ".env")
 DATA_DIR = BACKEND_DIR / "data"
 
 # Graph shown in UI — full history is still analyzed for scores/timeline
@@ -20,7 +21,5 @@ GRAPH_NODE_WARN_THRESHOLD = int(os.getenv("GRAPH_NODE_WARN_THRESHOLD", "800"))
 
 # Refuse analysis above this count to protect server memory (override via env)
 MAX_COMMITS_HARD_CAP = int(os.getenv("MAX_COMMITS_HARD_CAP", "50000"))
-
-load_dotenv(BACKEND_DIR / ".env")
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
